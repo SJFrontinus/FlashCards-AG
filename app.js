@@ -420,6 +420,14 @@ const App = {
     }
   },
 
+  showFloatingFeedback(text) {
+    const pill = document.createElement('div');
+    pill.className = 'floating-feedback';
+    pill.textContent = text;
+    this.drill.flashcard.appendChild(pill);
+    setTimeout(() => pill.remove(), 800);
+  },
+
   switchScreen(screenName) {
     Object.values(this.screens).forEach(screen => {
       screen.classList.remove('active');
@@ -535,7 +543,6 @@ const App = {
   // --- Drill Flow ---
   loadQuestion() {
     this.inputs.answer.value = '';
-    this.inputs.answer.disabled = false;
     this.inputs.answer.focus();
     
     this.drill.flashcard.classList.remove('card-shake');
@@ -613,7 +620,6 @@ const App = {
 
   handleTimeout() {
     this.stopTimer();
-    this.inputs.answer.disabled = true;
     
     const q = this.state.reviewMode 
       ? this.state.reviewQueue[this.state.currentIndex]
@@ -645,7 +651,6 @@ const App = {
     this.drill.correctionContainer.classList.remove('hide');
     
     // Re-enable input for typing correct answer
-    this.inputs.answer.disabled = false;
     this.inputs.answer.value = '';
     this.inputs.answer.focus();
   },
@@ -696,36 +701,32 @@ const App = {
         }
       }
 
-      // Briefly display checkmark overlay
-      this.drill.encouragementText.textContent = ENCOURAGEMENTS[Math.floor(Math.random() * ENCOURAGEMENTS.length)];
-      this.drill.overlaySuccess.classList.remove('hide');
-      this.inputs.answer.disabled = true;
+      // Briefly display floating feedback
+      const enc = ENCOURAGEMENTS[Math.floor(Math.random() * ENCOURAGEMENTS.length)];
+      this.showFloatingFeedback(`✓ ${enc}`);
 
-      // Auto-advance after 800ms
-      setTimeout(() => {
-        this.drill.overlaySuccess.classList.add('hide');
-        this.inputs.answer.value = '';
-        this.inputs.answer.disabled = false;
-        
-        // Remove from review queue if correct during review
-        if (this.state.reviewMode) {
-          // Splice out this completed review item
-          this.state.reviewQueue.splice(this.state.currentIndex, 1);
-          // Since we removed item, currentIndex points to next item naturally
-          // We only check bounds
-          if (this.state.currentIndex >= this.state.reviewQueue.length) {
-            this.state.currentIndex = 0; // wrap to start of remaining queue
-          }
-          
-          if (this.state.reviewQueue.length === 0) {
-            this.finishSession();
-          } else {
-            this.loadQuestion();
-          }
-        } else {
-          this.advanceSession();
+      // Clear input and focus (keep keyboard open synchronously)
+      this.inputs.answer.value = '';
+      this.inputs.answer.focus();
+
+      // Remove from review queue if correct during review
+      if (this.state.reviewMode) {
+        // Splice out this completed review item
+        this.state.reviewQueue.splice(this.state.currentIndex, 1);
+        // Since we removed item, currentIndex points to next item naturally
+        // We only check bounds
+        if (this.state.currentIndex >= this.state.reviewQueue.length) {
+          this.state.currentIndex = 0; // wrap to start of remaining queue
         }
-      }, 750);
+        
+        if (this.state.reviewQueue.length === 0) {
+          this.finishSession();
+        } else {
+          this.loadQuestion();
+        }
+      } else {
+        this.advanceSession();
+      }
 
     } else {
       // Wrong answer submitted
