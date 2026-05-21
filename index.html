@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AeroCards — Smart Math Flashcard Drills</title>
+  <meta name="description" content="A premium, interactive math flashcards web app featuring custom speed drills, strict reinforcement learning, and automated error review rounds.">
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- Stylesheet -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Ambient background glow elements -->
+  <div class="ambient-glow glow-1"></div>
+  <div class="ambient-glow glow-2"></div>
+
+  <!-- Confetti canvas for victory celebration -->
+  <canvas id="confetti-canvas"></canvas>
+
+  <main id="app-container">
+    <!-- SETUP SCREEN -->
+    <section id="setup-screen" class="screen active">
+      <div class="brand-header">
+        <div class="brand-logo">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+          </svg>
+        </div>
+        <h1>AeroCards</h1>
+        <p class="brand-subtitle">Level up your mental math reflexes</p>
+      </div>
+
+      <div class="glass-card setup-card">
+        <h2 class="card-title">Session Settings</h2>
+        
+        <form id="setup-form">
+          <!-- Operation Selection -->
+          <div class="form-group">
+            <label class="group-label">Choose Operation</label>
+            <div class="toggle-group">
+              <label class="toggle-btn active">
+                <input type="radio" name="operation" value="multiplication" checked hidden>
+                <span class="icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                  </svg>
+                </span>
+                Multiplication
+              </label>
+              <label class="toggle-btn">
+                <input type="radio" name="operation" value="addition" hidden>
+                <span class="icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                  </svg>
+                </span>
+                Addition
+              </label>
+            </div>
+          </div>
+
+          <!-- Slider Inputs -->
+          <div class="grid-2-col">
+            <!-- Minimum Target (M) -->
+            <div class="form-group">
+              <div class="label-with-val">
+                <label for="input-min-operand">Minimum Target (M)</label>
+                <span class="val-badge" id="val-min-operand">5</span>
+              </div>
+              <div class="range-container">
+                <input type="range" id="input-min-operand" name="minOperand" min="2" max="50" value="5">
+              </div>
+              <span class="field-hint">At least one operand will be ≥ this value</span>
+            </div>
+
+            <!-- Highest Target (H) -->
+            <div class="form-group">
+              <div class="label-with-val">
+                <label for="input-max-operand">Highest Limit (H)</label>
+                <span class="val-badge" id="val-max-operand">12</span>
+              </div>
+              <div class="range-container">
+                <input type="range" id="input-max-operand" name="maxOperand" min="2" max="100" value="12">
+              </div>
+              <span class="field-hint">Both operands will be ≤ this limit</span>
+            </div>
+          </div>
+
+          <div class="grid-2-col">
+            <!-- Drill Size -->
+            <div class="form-group">
+              <div class="label-with-val">
+                <label for="input-drill-size">Questions to Drill</label>
+                <span class="val-badge" id="val-drill-size">10</span>
+              </div>
+              <div class="range-container">
+                <input type="range" id="input-drill-size" name="drillSize" min="5" max="50" step="5" value="10">
+              </div>
+            </div>
+
+            <!-- Time Limit -->
+            <div class="form-group">
+              <div class="label-with-val">
+                <label for="input-time-limit">Time Limit (Seconds)</label>
+                <span class="val-badge" id="val-time-limit">8s</span>
+              </div>
+              <div class="timer-control-row">
+                <div class="range-container-flex">
+                  <input type="range" id="input-time-limit" name="timeLimit" min="3" max="30" value="8">
+                </div>
+                <label class="switch-checkbox">
+                  <input type="checkbox" id="toggle-unlimited">
+                  <span class="switch-label">Unlimited</span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <!-- Error Alert Panel -->
+          <div id="setup-error-panel" class="error-panel hide">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="12" y1="8" x2="12" y2="12"></line>
+              <line x1="12" y1="6" x2="12.01" y2="6"></line>
+            </svg>
+            <span id="setup-error-message">Minimum Target (M) cannot exceed Highest Limit (H).</span>
+          </div>
+
+          <!-- Launch Button -->
+          <button type="submit" class="btn btn-primary" id="btn-start">
+            <span>Start Drill Session</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="btn-arrow">
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+              <polyline points="12 5 19 12 12 19"></polyline>
+            </svg>
+          </button>
+        </form>
+      </div>
+    </section>
+
+    <!-- DRILL SCREEN -->
+    <section id="drill-screen" class="screen">
+      <!-- Drill Dashboard Header -->
+      <div class="drill-header">
+        <button id="btn-exit-drill" class="btn-icon-text" aria-label="Exit current drill">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+          <span>Exit</span>
+        </button>
+        <div class="drill-status-badge">
+          <span id="drill-type-badge">Multiplication</span>
+        </div>
+        <div class="drill-progress-text">
+          Question <span id="current-question-num">1</span> of <span id="total-questions-num">10</span>
+        </div>
+      </div>
+
+      <!-- Main Flashcard Frame -->
+      <div class="flashcard-container">
+        <!-- Interactive Timer Progress Bar -->
+        <div class="timer-bar-container" id="timer-bar-container">
+          <div class="timer-bar" id="timer-bar-fill"></div>
+        </div>
+
+        <div class="glass-card flashcard" id="flashcard-element">
+          <!-- Success Feedback Overlay -->
+          <div class="card-overlay success-overlay hide" id="overlay-success">
+            <div class="feedback-icon animate-bounce">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
+            </div>
+            <span class="feedback-text" id="encouragement-text">Excellent!</span>
+          </div>
+
+          <!-- Math Equation Area -->
+          <div class="equation-display">
+            <span class="number operand-a" id="operand-a">12</span>
+            <span class="operator" id="operator-symbol">×</span>
+            <span class="number operand-b" id="operand-b">5</span>
+            <span class="operator-equals">=</span>
+          </div>
+
+          <!-- Answer Form -->
+          <form id="drill-answer-form" autocomplete="off" novalidate>
+            <div class="input-wrapper">
+              <input type="number" id="input-answer" placeholder="?" inputmode="numeric" pattern="[0-9]*" required autofocus>
+              <button type="submit" id="btn-submit-answer" class="btn-submit-input" aria-label="Submit answer">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                  <line x1="5" y1="12" x2="19" y2="12"></line>
+                  <polyline points="12 5 19 12 12 19"></polyline>
+                </svg>
+              </button>
+            </div>
+          </form>
+
+          <!-- Correction & Error State reinforcement panel -->
+          <div class="correction-container hide" id="correction-container">
+            <div class="correction-alert">
+              <div class="error-badge">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="error-badge-icon">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <line x1="12" y1="8" x2="12" y2="12"></line>
+                  <line x1="12" y1="6" x2="12.01" y2="6"></line>
+                </svg>
+                <span id="correction-header">Incorrect Answer</span>
+              </div>
+              <p class="correction-equation">
+                <span id="correct-equation-text">12 × 5 = 60</span>
+              </p>
+              <p class="reinforcement-instruction">
+                Type <strong id="correct-answer-reinforce">60</strong> to proceed.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Session stats indicator -->
+      <div class="drill-footer">
+        <div class="mini-score">
+          <span>Correct: <strong id="score-correct-count">0</strong></span>
+          <span class="divider">|</span>
+          <span>Missed: <strong id="score-missed-count">0</strong></span>
+        </div>
+      </div>
+    </section>
+
+    <!-- REVIEW INTERSTITIAL SCREEN -->
+    <section id="review-intro-screen" class="screen">
+      <div class="glass-card setup-card review-intro-card text-center">
+        <div class="review-icon-header">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="review-icon">
+            <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"></path>
+          </svg>
+        </div>
+        <h2 class="card-title">Review Round</h2>
+        <p class="review-desc">
+          You missed <strong id="review-missed-count-text">3</strong> questions during this drill. Let's practice them now to lock them in your memory.
+        </p>
+        <p class="review-tip">
+          Note: If you miss a question during review, we will keep asking until you get it right!
+        </p>
+        <button id="btn-start-review" class="btn btn-accent">
+          <span>Start Review Round</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="btn-arrow">
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+            <polyline points="12 5 19 12 12 19"></polyline>
+          </svg>
+        </button>
+      </div>
+    </section>
+
+    <!-- RESULTS SCREEN -->
+    <section id="results-screen" class="screen">
+      <div class="brand-header">
+        <h1>Drill Complete!</h1>
+        <p class="brand-subtitle" id="results-verdict">Superb speed and precision</p>
+      </div>
+
+      <!-- Stats Summary cards -->
+      <div class="results-stats-row">
+        <div class="glass-card stat-block">
+          <span class="stat-label">Accuracy</span>
+          <span class="stat-value text-accent" id="stat-accuracy">90%</span>
+        </div>
+        <div class="glass-card stat-block">
+          <span class="stat-label">Avg Speed</span>
+          <span class="stat-value text-primary" id="stat-avg-speed">2.4s</span>
+        </div>
+        <div class="glass-card stat-block">
+          <span class="stat-label">Total Time</span>
+          <span class="stat-value" id="stat-total-time">24.5s</span>
+        </div>
+      </div>
+
+      <!-- Mastery / Missed breakdown lists -->
+      <div class="glass-card results-details-card">
+        <h2 class="card-title">Session Review</h2>
+        <div class="results-tabs">
+          <button class="tab-btn active" id="tab-mastered">Mastered (<span id="count-mastered">0</span>)</button>
+          <button class="tab-btn" id="tab-missed">Missed & Reviewed (<span id="count-missed">0</span>)</button>
+        </div>
+
+        <div class="list-container" id="results-list-mastered">
+          <!-- Mastered items populated dynamically -->
+        </div>
+        <div class="list-container hide" id="results-list-missed">
+          <!-- Missed items populated dynamically -->
+        </div>
+      </div>
+
+      <!-- Replay Options -->
+      <div class="action-buttons-row">
+        <button class="btn btn-secondary" id="btn-configure">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="btn-icon-svg">
+            <circle cx="12" cy="12" r="3"></circle>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+          </svg>
+          <span>Adjust Settings</span>
+        </button>
+        <button class="btn btn-primary" id="btn-retry">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="btn-icon-svg">
+            <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"></path>
+          </svg>
+          <span>Retry Drill</span>
+        </button>
+      </div>
+    </section>
+  </main>
+
+  <!-- Application Logic JS -->
+  <script src="app.js"></script>
+</body>
+</html>
