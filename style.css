@@ -179,6 +179,23 @@ h1 {
   color: var(--text-main);
 }
 
+.settings-subtitle {
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  font-weight: 600;
+  margin-top: 8px;
+  margin-bottom: 14px;
+  color: var(--text-main);
+  opacity: 0.95;
+  letter-spacing: 0.5px;
+  border-left: 3px solid var(--primary);
+  padding-left: 10px;
+}
+
+.operand-settings-section {
+  margin-bottom: 16px;
+}
+
 /* Setup Form Controls */
 .form-group {
   margin-bottom: 24px;

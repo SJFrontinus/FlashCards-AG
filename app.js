@@ -4,8 +4,8 @@
 
 // --- Application Constants & Defaults ---
 const DEFAULTS = {
-  multiplication: { min: 5, max: 12, size: 10, time: 8 },
-  addition: { min: 30, max: 99, size: 10, time: 8 }
+  multiplication: { minA: 5, maxA: 12, minB: 2, maxB: 12, size: 10, time: 8 },
+  addition: { minA: 10, maxA: 99, minB: 10, maxB: 99, size: 10, time: 8 }
 };
 
 const ENCOURAGEMENTS = [
@@ -101,8 +101,10 @@ const App = {
   
   inputs: {
     form: document.getElementById('setup-form'),
-    minOperand: document.getElementById('input-min-operand'),
-    maxOperand: document.getElementById('input-max-operand'),
+    minOperandA: document.getElementById('input-min-operand-a'),
+    maxOperandA: document.getElementById('input-max-operand-a'),
+    minOperandB: document.getElementById('input-min-operand-b'),
+    maxOperandB: document.getElementById('input-max-operand-b'),
     drillSize: document.getElementById('input-drill-size'),
     timeLimit: document.getElementById('input-time-limit'),
     unlimited: document.getElementById('toggle-unlimited'),
@@ -111,8 +113,10 @@ const App = {
   },
 
   badges: {
-    minOperand: document.getElementById('val-min-operand'),
-    maxOperand: document.getElementById('val-max-operand'),
+    minOperandA: document.getElementById('val-min-operand-a'),
+    maxOperandA: document.getElementById('val-max-operand-a'),
+    minOperandB: document.getElementById('val-min-operand-b'),
+    maxOperandB: document.getElementById('val-max-operand-b'),
     drillSize: document.getElementById('val-drill-size'),
     timeLimit: document.getElementById('val-time-limit')
   },
@@ -156,8 +160,10 @@ const App = {
   // App State
   state: {
     operation: 'multiplication',
-    minOperand: 5,
-    maxOperand: 12,
+    minOperandA: 5,
+    maxOperandA: 12,
+    minOperandB: 2,
+    maxOperandB: 12,
     drillSize: 10,
     timeLimit: 8,
     unlimitedTime: false,
@@ -213,13 +219,23 @@ const App = {
     });
 
     // Slider inputs
-    this.inputs.minOperand.addEventListener('input', () => {
-      this.badges.minOperand.textContent = this.inputs.minOperand.value;
+    this.inputs.minOperandA.addEventListener('input', () => {
+      this.badges.minOperandA.textContent = this.inputs.minOperandA.value;
       this.validateSetup();
     });
 
-    this.inputs.maxOperand.addEventListener('input', () => {
-      this.badges.maxOperand.textContent = this.inputs.maxOperand.value;
+    this.inputs.maxOperandA.addEventListener('input', () => {
+      this.badges.maxOperandA.textContent = this.inputs.maxOperandA.value;
+      this.validateSetup();
+    });
+
+    this.inputs.minOperandB.addEventListener('input', () => {
+      this.badges.minOperandB.textContent = this.inputs.minOperandB.value;
+      this.validateSetup();
+    });
+
+    this.inputs.maxOperandB.addEventListener('input', () => {
+      this.badges.maxOperandB.textContent = this.inputs.maxOperandB.value;
       this.validateSetup();
     });
 
@@ -304,21 +320,37 @@ const App = {
     
     // Adjust sliders range and defaults
     if (op === 'addition') {
-      this.inputs.minOperand.min = 10;
-      this.inputs.minOperand.max = 99;
-      this.inputs.minOperand.value = config.min;
+      this.inputs.minOperandA.min = 10;
+      this.inputs.minOperandA.max = 99;
+      this.inputs.minOperandA.value = config.minA;
       
-      this.inputs.maxOperand.min = 10;
-      this.inputs.maxOperand.max = 99;
-      this.inputs.maxOperand.value = config.max;
+      this.inputs.maxOperandA.min = 10;
+      this.inputs.maxOperandA.max = 99;
+      this.inputs.maxOperandA.value = config.maxA;
+
+      this.inputs.minOperandB.min = 10;
+      this.inputs.minOperandB.max = 99;
+      this.inputs.minOperandB.value = config.minB;
+      
+      this.inputs.maxOperandB.min = 10;
+      this.inputs.maxOperandB.max = 99;
+      this.inputs.maxOperandB.value = config.maxB;
     } else {
-      this.inputs.minOperand.min = 2;
-      this.inputs.minOperand.max = 50;
-      this.inputs.minOperand.value = config.min;
+      this.inputs.minOperandA.min = 2;
+      this.inputs.minOperandA.max = 100;
+      this.inputs.minOperandA.value = config.minA;
       
-      this.inputs.maxOperand.min = 2;
-      this.inputs.maxOperand.max = 100;
-      this.inputs.maxOperand.value = config.max;
+      this.inputs.maxOperandA.min = 2;
+      this.inputs.maxOperandA.max = 100;
+      this.inputs.maxOperandA.value = config.maxA;
+
+      this.inputs.minOperandB.min = 2;
+      this.inputs.minOperandB.max = 100;
+      this.inputs.minOperandB.value = config.minB;
+      
+      this.inputs.maxOperandB.min = 2;
+      this.inputs.maxOperandB.max = 100;
+      this.inputs.maxOperandB.value = config.maxB;
     }
 
     this.inputs.drillSize.value = config.size;
@@ -330,8 +362,10 @@ const App = {
   },
 
   syncSliders() {
-    this.badges.minOperand.textContent = this.inputs.minOperand.value;
-    this.badges.maxOperand.textContent = this.inputs.maxOperand.value;
+    this.badges.minOperandA.textContent = this.inputs.minOperandA.value;
+    this.badges.maxOperandA.textContent = this.inputs.maxOperandA.value;
+    this.badges.minOperandB.textContent = this.inputs.minOperandB.value;
+    this.badges.maxOperandB.textContent = this.inputs.maxOperandB.value;
     this.badges.drillSize.textContent = this.inputs.drillSize.value;
     this.badges.timeLimit.textContent = this.inputs.timeLimit.value + 's';
     this.badges.timeLimit.style.opacity = '1';
@@ -355,21 +389,34 @@ const App = {
           }
         });
 
-        // Set inputs
+        // Set slider bounds
         if (this.state.operation === 'addition') {
-          this.inputs.minOperand.min = 10;
-          this.inputs.minOperand.max = 99;
-          this.inputs.maxOperand.min = 10;
-          this.inputs.maxOperand.max = 99;
+          this.inputs.minOperandA.min = 10;
+          this.inputs.minOperandA.max = 99;
+          this.inputs.maxOperandA.min = 10;
+          this.inputs.maxOperandA.max = 99;
+          this.inputs.minOperandB.min = 10;
+          this.inputs.minOperandB.max = 99;
+          this.inputs.maxOperandB.min = 10;
+          this.inputs.maxOperandB.max = 99;
         } else {
-          this.inputs.minOperand.min = 2;
-          this.inputs.minOperand.max = 50;
-          this.inputs.maxOperand.min = 2;
-          this.inputs.maxOperand.max = 100;
+          this.inputs.minOperandA.min = 2;
+          this.inputs.minOperandA.max = 100;
+          this.inputs.maxOperandA.min = 2;
+          this.inputs.maxOperandA.max = 100;
+          this.inputs.minOperandB.min = 2;
+          this.inputs.minOperandB.max = 100;
+          this.inputs.maxOperandB.min = 2;
+          this.inputs.maxOperandB.max = 100;
         }
 
-        this.inputs.minOperand.value = settings.minOperand;
-        this.inputs.maxOperand.value = settings.maxOperand;
+        // Backwards compatibility support
+        const defaultMinB = this.state.operation === 'multiplication' ? 2 : 10;
+        this.inputs.minOperandA.value = settings.minOperandA !== undefined ? settings.minOperandA : settings.minOperand;
+        this.inputs.maxOperandA.value = settings.maxOperandA !== undefined ? settings.maxOperandA : settings.maxOperand;
+        this.inputs.minOperandB.value = settings.minOperandB !== undefined ? settings.minOperandB : defaultMinB;
+        this.inputs.maxOperandB.value = settings.maxOperandB !== undefined ? settings.maxOperandB : settings.maxOperand;
+        
         this.inputs.drillSize.value = settings.drillSize;
         
         if (settings.unlimitedTime) {
@@ -382,8 +429,10 @@ const App = {
         }
       } else {
         // Enforce approved defaults for multiplication
-        this.inputs.minOperand.value = 5;
-        this.inputs.maxOperand.value = 12;
+        this.inputs.minOperandA.value = 5;
+        this.inputs.maxOperandA.value = 12;
+        this.inputs.minOperandB.value = 2;
+        this.inputs.maxOperandB.value = 12;
         this.inputs.drillSize.value = 10;
         this.inputs.timeLimit.value = 8;
       }
@@ -395,8 +444,10 @@ const App = {
   saveSettings() {
     const settings = {
       operation: this.state.operation,
-      minOperand: parseInt(this.inputs.minOperand.value),
-      maxOperand: parseInt(this.inputs.maxOperand.value),
+      minOperandA: parseInt(this.inputs.minOperandA.value),
+      maxOperandA: parseInt(this.inputs.maxOperandA.value),
+      minOperandB: parseInt(this.inputs.minOperandB.value),
+      maxOperandB: parseInt(this.inputs.maxOperandB.value),
       drillSize: parseInt(this.inputs.drillSize.value),
       timeLimit: parseInt(this.inputs.timeLimit.value),
       unlimitedTime: this.inputs.unlimited.checked
@@ -405,12 +456,22 @@ const App = {
   },
 
   validateSetup() {
-    const minVal = parseInt(this.inputs.minOperand.value);
-    const maxVal = parseInt(this.inputs.maxOperand.value);
+    const minA = parseInt(this.inputs.minOperandA.value);
+    const maxA = parseInt(this.inputs.maxOperandA.value);
+    const minB = parseInt(this.inputs.minOperandB.value);
+    const maxB = parseInt(this.inputs.maxOperandB.value);
     
-    if (minVal > maxVal) {
+    let errors = [];
+    if (minA > maxA) {
+      errors.push(`Operand A Minimum (Min A: ${minA}) cannot exceed Maximum (Max A: ${maxA}).`);
+    }
+    if (minB > maxB) {
+      errors.push(`Operand B Minimum (Min B: ${minB}) cannot exceed Maximum (Max B: ${maxB}).`);
+    }
+    
+    if (errors.length > 0) {
       this.errorPanel.classList.remove('hide');
-      this.errorMessage.textContent = `Minimum Target (M: ${minVal}) cannot exceed Highest Limit (H: ${maxVal}).`;
+      this.errorMessage.innerHTML = errors.join('<br>');
       document.getElementById('btn-start').disabled = true;
       return false;
     } else {
@@ -447,8 +508,10 @@ const App = {
     
     // Initialize State
     this.state.operation = this.state.operation;
-    this.state.minOperand = parseInt(this.inputs.minOperand.value);
-    this.state.maxOperand = parseInt(this.inputs.maxOperand.value);
+    this.state.minOperandA = parseInt(this.inputs.minOperandA.value);
+    this.state.maxOperandA = parseInt(this.inputs.maxOperandA.value);
+    this.state.minOperandB = parseInt(this.inputs.minOperandB.value);
+    this.state.maxOperandB = parseInt(this.inputs.maxOperandB.value);
     this.state.drillSize = parseInt(this.inputs.drillSize.value);
     this.state.timeLimit = parseInt(this.inputs.timeLimit.value);
     this.state.unlimitedTime = this.inputs.unlimited.checked;
@@ -477,27 +540,23 @@ const App = {
   },
 
   generateQuestions() {
-    const M = this.state.minOperand;
-    const H = this.state.maxOperand;
+    const minA = this.state.minOperandA;
+    const maxA = this.state.maxOperandA;
+    const minB = this.state.minOperandB;
+    const maxB = this.state.maxOperandB;
     const isMultiplication = this.state.operation === 'multiplication';
-    
-    // Determine the lower boundary of the operands
-    // Multiplication: 2, Addition: 10 (two-digit numbers)
-    const lowerBound = isMultiplication ? 2 : 10;
     
     // Generate pool of valid pairs
     const pool = [];
-    for (let a = lowerBound; a <= H; a++) {
-      for (let b = lowerBound; b <= H; b++) {
-        if (a >= M || b >= M) {
-          pool.push({ a, b });
-        }
+    for (let a = minA; a <= maxA; a++) {
+      for (let b = minB; b <= maxB; b++) {
+        pool.push({ a, b });
       }
     }
     
     // If pool is empty (e.g. invalid bounds somehow), fallback
     if (pool.length === 0) {
-      pool.push({ a: M, b: M });
+      pool.push({ a: minA, b: minB });
     }
     
     // Shuffle the pool using Fisher-Yates

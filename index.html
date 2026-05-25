@@ -64,30 +64,58 @@
             </div>
           </div>
 
-          <!-- Slider Inputs -->
-          <div class="grid-2-col">
-            <!-- Minimum Target (M) -->
-            <div class="form-group">
-              <div class="label-with-val">
-                <label for="input-min-operand">Minimum Target (M)</label>
-                <span class="val-badge" id="val-min-operand">5</span>
+          <!-- Operand A and B Settings -->
+          <div class="operand-settings-section">
+            <h3 class="settings-subtitle">Operand A Range</h3>
+            <div class="grid-2-col">
+              <!-- Minimum Operand A -->
+              <div class="form-group">
+                <div class="label-with-val">
+                  <label for="input-min-operand-a">Minimum (Min A)</label>
+                  <span class="val-badge" id="val-min-operand-a">5</span>
+                </div>
+                <div class="range-container">
+                  <input type="range" id="input-min-operand-a" name="minOperandA" min="2" max="100" value="5">
+                </div>
               </div>
-              <div class="range-container">
-                <input type="range" id="input-min-operand" name="minOperand" min="2" max="50" value="5">
-              </div>
-              <span class="field-hint">At least one operand will be ≥ this value</span>
-            </div>
 
-            <!-- Highest Target (H) -->
-            <div class="form-group">
-              <div class="label-with-val">
-                <label for="input-max-operand">Highest Limit (H)</label>
-                <span class="val-badge" id="val-max-operand">12</span>
+              <!-- Maximum Operand A -->
+              <div class="form-group">
+                <div class="label-with-val">
+                  <label for="input-max-operand-a">Maximum (Max A)</label>
+                  <span class="val-badge" id="val-max-operand-a">12</span>
+                </div>
+                <div class="range-container">
+                  <input type="range" id="input-max-operand-a" name="maxOperandA" min="2" max="100" value="12">
+                </div>
               </div>
-              <div class="range-container">
-                <input type="range" id="input-max-operand" name="maxOperand" min="2" max="100" value="12">
+            </div>
+          </div>
+
+          <div class="operand-settings-section">
+            <h3 class="settings-subtitle">Operand B Range</h3>
+            <div class="grid-2-col">
+              <!-- Minimum Operand B -->
+              <div class="form-group">
+                <div class="label-with-val">
+                  <label for="input-min-operand-b">Minimum (Min B)</label>
+                  <span class="val-badge" id="val-min-operand-b">2</span>
+                </div>
+                <div class="range-container">
+                  <input type="range" id="input-min-operand-b" name="minOperandB" min="2" max="100" value="2">
+                </div>
               </div>
-              <span class="field-hint">Both operands will be ≤ this limit</span>
+
+              <!-- Maximum Operand B -->
+              <div class="form-group">
+                <div class="label-with-val">
+                  <label for="input-max-operand-b">Maximum (Max B)</label>
+                  <span class="val-badge" id="val-max-operand-b">12</span>
+                </div>
+                <div class="range-container">
+                  <input type="range" id="input-max-operand-b" name="maxOperandB" min="2" max="100" value="12">
+                </div>
+              </div>
             </div>
           </div>
 
