@@ -1030,6 +1030,122 @@ input[type="range"]::-webkit-slider-thumb:hover {
   animation: timer-warn-pulse 0.8s infinite ease-in-out;
 }
 
+/* On-Screen Keypad Styles */
+.onscreen-keypad {
+  position: fixed;
+  z-index: 1000;
+  background: hsla(223, 40%, 12%, 0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--border-light);
+  border-radius: 20px;
+  padding: 12px 14px 14px 14px;
+  width: 250px;
+  box-shadow: var(--shadow-main), 0 0 0 1px hsla(0, 0%, 100%, 0.05);
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+  user-select: none;
+  touch-action: none; /* disables default panning when dragging */
+}
+
+.onscreen-keypad.dragging {
+  transform: scale(1.03);
+  border-color: var(--primary);
+  box-shadow: 0 30px 60px -10px rgba(0, 0, 0, 0.7), 0 0 0 1px var(--primary);
+  cursor: grabbing;
+  transition: none !important;
+}
+
+.keypad-drag-handle {
+  width: 100%;
+  height: 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 8px;
+  cursor: grab;
+}
+
+.onscreen-keypad.dragging .keypad-drag-handle {
+  cursor: grabbing;
+}
+
+.drag-handle-pill {
+  width: 36px;
+  height: 5px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
+  transition: background-color 0.2s;
+}
+
+.keypad-drag-handle:hover .drag-handle-pill {
+  background: rgba(255, 255, 255, 0.4);
+}
+
+.keypad-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.keypad-key {
+  height: 48px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-light);
+  color: var(--text-main);
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: background-color 0.15s, transform 0.05s, border-color 0.15s;
+  outline: none;
+}
+
+.keypad-key:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.keypad-key:active {
+  transform: scale(0.94);
+  background: rgba(255, 255, 255, 0.18);
+}
+
+.keypad-key svg {
+  width: 20px;
+  height: 20px;
+  stroke: var(--text-main);
+}
+
+.keypad-key.key-backspace {
+  color: var(--error);
+}
+
+.keypad-key.key-backspace svg {
+  stroke: var(--error);
+}
+
+.keypad-key.key-enter {
+  background: linear-gradient(135deg, var(--primary), hsla(263, 90%, 60%, 0.95));
+  border: none;
+  color: white;
+  box-shadow: 0 4px 10px var(--primary-glow);
+}
+
+.keypad-key.key-enter svg {
+  stroke: white;
+}
+
+.keypad-key.key-enter:hover {
+  background: linear-gradient(135deg, var(--primary-hover), var(--primary));
+}
+
+.keypad-key.key-enter:active {
+  transform: scale(0.94);
+}
 
 /* ==========================================================================
    Responsive Adaptations
@@ -1073,5 +1189,19 @@ input[type="range"]::-webkit-slider-thumb:hover {
   }
   .correction-equation {
     font-size: 1.8rem;
+  }
+  .onscreen-keypad {
+    width: 230px;
+    padding: 8px 10px 10px 10px;
+    border-radius: 16px;
+  }
+  .keypad-key {
+    height: 42px;
+    font-size: 1.2rem;
+    border-radius: 8px;
+  }
+  .keypad-key svg {
+    width: 18px;
+    height: 18px;
   }
 }

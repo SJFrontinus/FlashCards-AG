@@ -145,8 +145,20 @@
                   <input type="checkbox" id="toggle-unlimited">
                   <span class="switch-label">Unlimited</span>
                 </label>
-              </div>
             </div>
+          </div>
+
+          <!-- Keyboard Toggle Settings -->
+          <div class="grid-2-col" style="margin-top: 16px; margin-bottom: 24px;">
+            <div class="form-group">
+              <label class="group-label">Keyboard Interface</label>
+              <label class="switch-checkbox" style="margin-top: 6px;">
+                <input type="checkbox" id="toggle-keypad" checked>
+                <span class="switch-label">AeroCards Screen Keypad</span>
+              </label>
+              <span class="field-hint">Optimized touch layout with backspace on left & enter on right</span>
+            </div>
+            <div></div>
           </div>
 
           <!-- Error Alert Panel -->
@@ -250,7 +262,39 @@
           </div>
         </div>
       </div>
-      
+      <!-- Draggable Floating On-Screen Keypad -->
+      <div class="onscreen-keypad hide" id="onscreen-keypad">
+        <div class="keypad-drag-handle" id="keypad-drag-handle">
+          <div class="drag-handle-pill"></div>
+        </div>
+        <div class="keypad-grid">
+          <button type="button" class="keypad-key" data-key="1">1</button>
+          <button type="button" class="keypad-key" data-key="2">2</button>
+          <button type="button" class="keypad-key" data-key="3">3</button>
+          <button type="button" class="keypad-key" data-key="4">4</button>
+          <button type="button" class="keypad-key" data-key="5">5</button>
+          <button type="button" class="keypad-key" data-key="6">6</button>
+          <button type="button" class="keypad-key" data-key="7">7</button>
+          <button type="button" class="keypad-key" data-key="8">8</button>
+          <button type="button" class="keypad-key" data-key="9">9</button>
+          
+          <button type="button" class="keypad-key key-backspace" data-key="backspace" aria-label="Backspace">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <path d="M21 4H8l-7 8 7 8h13a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"/>
+              <line x1="18" y1="9" x2="12" y2="15"/>
+              <line x1="12" y1="9" x2="18" y2="15"/>
+            </svg>
+          </button>
+          <button type="button" class="keypad-key" data-key="0">0</button>
+          <button type="button" class="keypad-key key-enter" data-key="enter" aria-label="Enter">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <line x1="5" y1="12" x2="19" y2="12"/>
+              <polyline points="12 5 19 12 12 19"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+
       <!-- Session stats indicator -->
       <div class="drill-footer">
         <div class="mini-score">

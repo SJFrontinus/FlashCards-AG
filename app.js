@@ -109,7 +109,10 @@ const App = {
     timeLimit: document.getElementById('input-time-limit'),
     unlimited: document.getElementById('toggle-unlimited'),
     answer: document.getElementById('input-answer'),
-    answerForm: document.getElementById('drill-answer-form')
+    answerForm: document.getElementById('drill-answer-form'),
+    toggleKeypad: document.getElementById('toggle-keypad'),
+    onscreenKeypad: document.getElementById('onscreen-keypad'),
+    keypadDragHandle: document.getElementById('keypad-drag-handle')
   },
 
   badges: {
@@ -167,6 +170,7 @@ const App = {
     drillSize: 10,
     timeLimit: 8,
     unlimitedTime: false,
+    useScreenKeypad: true,
     
     // Drill data
     questions: [],
@@ -198,6 +202,7 @@ const App = {
     this.bindEvents();
     this.loadCachedSettings();
     this.syncSliders();
+    this.initDraggable();
   },
 
   // --- Event Binding ---
@@ -312,6 +317,22 @@ const App = {
       this.confetti.stop();
       this.startSession();
     });
+
+    // Keyboard Interface Toggle Listener
+    this.inputs.toggleKeypad.addEventListener('change', () => {
+      this.state.useScreenKeypad = this.inputs.toggleKeypad.checked;
+      this.saveSettings();
+    });
+
+    // On-Screen Keypad key buttons pointer events
+    const keys = this.inputs.onscreenKeypad.querySelectorAll('.keypad-key');
+    keys.forEach(key => {
+      key.addEventListener('pointerdown', (e) => {
+        e.preventDefault(); // suppress focus shifts or text selections
+        const val = key.getAttribute('data-key');
+        this.handleKeypadPress(val);
+      });
+    });
   },
 
   // --- Logic Functions ---
@@ -419,6 +440,13 @@ const App = {
         
         this.inputs.drillSize.value = settings.drillSize;
         
+        if (settings.useScreenKeypad !== undefined) {
+          this.state.useScreenKeypad = settings.useScreenKeypad;
+        } else {
+          this.state.useScreenKeypad = ('ontouchstart' in window);
+        }
+        this.inputs.toggleKeypad.checked = this.state.useScreenKeypad;
+        
         if (settings.unlimitedTime) {
           this.inputs.unlimited.checked = true;
           this.inputs.timeLimit.disabled = true;
@@ -435,6 +463,9 @@ const App = {
         this.inputs.maxOperandB.value = 12;
         this.inputs.drillSize.value = 10;
         this.inputs.timeLimit.value = 8;
+        
+        this.state.useScreenKeypad = ('ontouchstart' in window);
+        this.inputs.toggleKeypad.checked = this.state.useScreenKeypad;
       }
     } catch (e) {
       console.error('Error loading settings', e);
@@ -450,7 +481,8 @@ const App = {
       maxOperandB: parseInt(this.inputs.maxOperandB.value),
       drillSize: parseInt(this.inputs.drillSize.value),
       timeLimit: parseInt(this.inputs.timeLimit.value),
-      unlimitedTime: this.inputs.unlimited.checked
+      unlimitedTime: this.inputs.unlimited.checked,
+      useScreenKeypad: this.inputs.toggleKeypad.checked
     };
     localStorage.setItem('aerocards_settings', JSON.stringify(settings));
   },
@@ -515,6 +547,7 @@ const App = {
     this.state.drillSize = parseInt(this.inputs.drillSize.value);
     this.state.timeLimit = parseInt(this.inputs.timeLimit.value);
     this.state.unlimitedTime = this.inputs.unlimited.checked;
+    this.state.useScreenKeypad = this.inputs.toggleKeypad.checked;
     
     this.state.currentIndex = 0;
     this.state.correctCount = 0;
@@ -528,6 +561,20 @@ const App = {
     this.drill.correctionContainer.classList.add('hide');
     this.drill.overlaySuccess.classList.add('hide');
     this.inputs.answer.value = '';
+    
+    // Toggle on-screen keyboard display & inputs
+    if (this.state.useScreenKeypad) {
+      this.inputs.onscreenKeypad.classList.remove('hide');
+      this.inputs.answer.setAttribute('inputmode', 'none');
+      this.inputs.answer.setAttribute('type', 'text');
+      this.inputs.answer.setAttribute('pattern', '[0-9]*');
+      this.resetKeypadPosition();
+    } else {
+      this.inputs.onscreenKeypad.classList.add('hide');
+      this.inputs.answer.setAttribute('inputmode', 'numeric');
+      this.inputs.answer.setAttribute('type', 'number');
+      this.inputs.answer.removeAttribute('pattern');
+    }
     
     this.generateQuestions();
     
@@ -947,6 +994,108 @@ const App = {
     row.appendChild(metaDiv);
     
     return row;
+  },
+
+  handleKeypadPress(key) {
+    const input = this.inputs.answer;
+    
+    if (key === 'backspace') {
+      input.value = input.value.slice(0, -1);
+    } else if (key === 'enter') {
+      this.handleAnswerSubmit();
+    } else {
+      if (input.value.length < 6) {
+        input.value += key;
+      }
+    }
+    input.focus();
+  },
+
+  initDraggable() {
+    const keypad = this.inputs.onscreenKeypad;
+    const handle = this.inputs.keypadDragHandle;
+    
+    let isDragging = false;
+    let startX, startY;
+    let initialLeft, initialTop;
+    
+    handle.addEventListener('pointerdown', (e) => {
+      if (e.button !== 0 && e.pointerType === 'mouse') return;
+      
+      isDragging = true;
+      keypad.classList.add('dragging');
+      
+      startX = e.clientX;
+      startY = e.clientY;
+      
+      const rect = keypad.getBoundingClientRect();
+      initialLeft = rect.left;
+      initialTop = rect.top;
+      
+      e.preventDefault();
+      
+      const onPointerMove = (moveEvent) => {
+        if (!isDragging) return;
+        
+        const deltaX = moveEvent.clientX - startX;
+        const deltaY = moveEvent.clientY - startY;
+        
+        let newLeft = initialLeft + deltaX;
+        let newTop = initialTop + deltaY;
+        
+        const keypadWidth = rect.width;
+        const keypadHeight = rect.height;
+        const windowWidth = window.innerWidth;
+        const windowHeight = window.innerHeight;
+        
+        if (newLeft < 0) newLeft = 0;
+        if (newLeft > windowWidth - keypadWidth) newLeft = windowWidth - keypadWidth;
+        if (newTop < 0) newTop = 0;
+        if (newTop > windowHeight - keypadHeight) newTop = windowHeight - keypadHeight;
+        
+        keypad.style.left = `${newLeft}px`;
+        keypad.style.top = `${newTop}px`;
+        keypad.style.transform = 'none';
+        keypad.style.bottom = 'auto';
+        keypad.style.right = 'auto';
+      };
+      
+      const onPointerUp = () => {
+        isDragging = false;
+        keypad.classList.remove('dragging');
+        document.removeEventListener('pointermove', onPointerMove);
+        document.removeEventListener('pointerup', onPointerUp);
+      };
+      
+      document.addEventListener('pointermove', onPointerMove);
+      document.addEventListener('pointerup', onPointerUp);
+    });
+  },
+
+  resetKeypadPosition() {
+    const keypad = this.inputs.onscreenKeypad;
+    
+    keypad.style.left = '';
+    keypad.style.top = '';
+    keypad.style.bottom = '';
+    keypad.style.right = '';
+    keypad.style.transform = '';
+    
+    if (window.innerWidth > 960) {
+      const card = this.drill.flashcard;
+      if (card) {
+        const cardRect = card.getBoundingClientRect();
+        const leftPos = cardRect.right + 30;
+        const topPos = cardRect.top + (cardRect.height / 2) - 130;
+        
+        if (leftPos + 270 < window.innerWidth) {
+          keypad.style.left = `${leftPos}px`;
+          keypad.style.top = `${topPos}px`;
+          keypad.style.bottom = 'auto';
+          keypad.style.transform = 'none';
+        }
+      }
+    }
   }
 };
 
