@@ -526,6 +526,13 @@ const App = {
       screen.classList.remove('active');
     });
     
+    if (screenName !== 'drill') {
+      this.inputs.onscreenKeypad.classList.add('hide');
+    } else if (this.state.useScreenKeypad) {
+      this.inputs.onscreenKeypad.classList.remove('hide');
+      this.resetKeypadPosition();
+    }
+    
     setTimeout(() => {
       this.screens[screenName].classList.add('active');
       if (screenName === 'drill') {

@@ -1033,6 +1033,9 @@ input[type="range"]::-webkit-slider-thumb:hover {
 /* On-Screen Keypad Styles */
 .onscreen-keypad {
   position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
   z-index: 1000;
   background: hsla(223, 40%, 12%, 0.85);
   backdrop-filter: blur(20px);
@@ -1048,7 +1051,7 @@ input[type="range"]::-webkit-slider-thumb:hover {
 }
 
 .onscreen-keypad.dragging {
-  transform: scale(1.03);
+  transform: scale(1.03) !important;
   border-color: var(--primary);
   box-shadow: 0 30px 60px -10px rgba(0, 0, 0, 0.7), 0 0 0 1px var(--primary);
   cursor: grabbing;
