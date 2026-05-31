@@ -324,6 +324,13 @@ const App = {
       this.saveSettings();
     });
 
+    // Resize handler to reposition the keypad
+    window.addEventListener('resize', () => {
+      if (this.screens.drill.classList.contains('active') && this.state.useScreenKeypad) {
+        this.resetKeypadPosition();
+      }
+    });
+
     // On-Screen Keypad key buttons pointer events
     const keys = this.inputs.onscreenKeypad.querySelectorAll('.keypad-key');
     keys.forEach(key => {
@@ -530,12 +537,14 @@ const App = {
       this.inputs.onscreenKeypad.classList.add('hide');
     } else if (this.state.useScreenKeypad) {
       this.inputs.onscreenKeypad.classList.remove('hide');
-      this.resetKeypadPosition();
     }
     
     setTimeout(() => {
       this.screens[screenName].classList.add('active');
       if (screenName === 'drill') {
+        if (this.state.useScreenKeypad) {
+          this.resetKeypadPosition();
+        }
         this.inputs.answer.focus();
       }
     }, 50);
@@ -575,7 +584,6 @@ const App = {
       this.inputs.answer.setAttribute('inputmode', 'none');
       this.inputs.answer.setAttribute('type', 'text');
       this.inputs.answer.setAttribute('pattern', '[0-9]*');
-      this.resetKeypadPosition();
     } else {
       this.inputs.onscreenKeypad.classList.add('hide');
       this.inputs.answer.setAttribute('inputmode', 'numeric');
@@ -1092,8 +1100,12 @@ const App = {
       const card = this.drill.flashcard;
       if (card) {
         const cardRect = card.getBoundingClientRect();
-        const leftPos = cardRect.right + 30;
-        const topPos = cardRect.top + (cardRect.height / 2) - 130;
+        let leftPos = cardRect.right + 30;
+        let topPos = cardRect.top + (cardRect.height / 2) - 130;
+        
+        // Ensure the keypad handle is within the viewport and draggable
+        if (topPos < 20) topPos = 20;
+        if (leftPos < 20) leftPos = 20;
         
         if (leftPos + 270 < window.innerWidth) {
           keypad.style.left = `${leftPos}px`;
