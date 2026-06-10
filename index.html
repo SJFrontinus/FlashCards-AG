@@ -64,6 +64,16 @@
             </div>
           </div>
 
+          <!-- Teach Mode Toggle -->
+          <div class="form-group">
+            <label class="group-label">Session Mode</label>
+            <label class="switch-checkbox" style="margin-top: 6px;">
+              <input type="checkbox" id="toggle-teach">
+              <span class="switch-label">Teach Mode</span>
+            </label>
+            <span class="field-hint" id="teach-hint">Learn the cards in order with answers shown, then take an in-order quiz</span>
+          </div>
+
           <!-- Operand A and B Settings -->
           <div class="operand-settings-section">
             <h3 class="settings-subtitle">Operand A Range</h3>
@@ -119,7 +129,7 @@
             </div>
           </div>
 
-          <div class="grid-2-col">
+          <div class="grid-2-col" id="drill-config-row">
             <!-- Drill Size -->
             <div class="form-group">
               <div class="label-with-val">
@@ -145,6 +155,7 @@
                   <input type="checkbox" id="toggle-unlimited">
                   <span class="switch-label">Unlimited</span>
                 </label>
+              </div>
             </div>
           </div>
 
@@ -226,6 +237,7 @@
             <span class="operator" id="operator-symbol">×</span>
             <span class="number operand-b" id="operand-b">5</span>
             <span class="operator-equals">=</span>
+            <span class="number answer-reveal hide" id="answer-reveal">60</span>
           </div>
 
           <!-- Answer Form -->
@@ -264,7 +276,7 @@
       </div>
 
       <!-- Session stats indicator -->
-      <div class="drill-footer">
+      <div class="drill-footer" id="drill-footer">
         <div class="mini-score">
           <span>Correct: <strong id="score-correct-count">0</strong></span>
           <span class="divider">|</span>
@@ -281,15 +293,15 @@
             <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"></path>
           </svg>
         </div>
-        <h2 class="card-title">Review Round</h2>
-        <p class="review-desc">
-          You missed <strong id="review-missed-count-text">3</strong> questions during this drill. Let's practice them now to lock them in your memory.
+        <h2 class="card-title" id="review-intro-title">Review Round</h2>
+        <p class="review-desc" id="review-intro-desc">
+          You missed <strong>3</strong> questions during this drill. Let's practice them now to lock them in your memory.
         </p>
-        <p class="review-tip">
+        <p class="review-tip" id="review-intro-tip">
           Note: If you miss a question during review, we will keep asking until you get it right!
         </p>
         <button id="btn-start-review" class="btn btn-accent">
-          <span>Start Review Round</span>
+          <span id="review-intro-btn-text">Start Review Round</span>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="btn-arrow">
             <line x1="5" y1="12" x2="19" y2="12"></line>
             <polyline points="12 5 19 12 12 19"></polyline>

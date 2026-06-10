@@ -111,6 +111,7 @@ const App = {
     answer: document.getElementById('input-answer'),
     answerForm: document.getElementById('drill-answer-form'),
     toggleKeypad: document.getElementById('toggle-keypad'),
+    toggleTeach: document.getElementById('toggle-teach'),
     onscreenKeypad: document.getElementById('onscreen-keypad'),
     keypadDragHandle: document.getElementById('keypad-drag-handle')
   },
@@ -124,6 +125,18 @@ const App = {
     timeLimit: document.getElementById('val-time-limit')
   },
 
+  teachUI: {
+    hint: document.getElementById('teach-hint'),
+    drillConfigRow: document.getElementById('drill-config-row')
+  },
+
+  interstitial: {
+    title: document.getElementById('review-intro-title'),
+    desc: document.getElementById('review-intro-desc'),
+    tip: document.getElementById('review-intro-tip'),
+    btnText: document.getElementById('review-intro-btn-text')
+  },
+
   drill: {
     typeBadge: document.getElementById('drill-type-badge'),
     currentQ: document.getElementById('current-question-num'),
@@ -131,6 +144,7 @@ const App = {
     operandA: document.getElementById('operand-a'),
     operandB: document.getElementById('operand-b'),
     operatorSymbol: document.getElementById('operator-symbol'),
+    answerReveal: document.getElementById('answer-reveal'),
     timerContainer: document.getElementById('timer-bar-container'),
     timerFill: document.getElementById('timer-bar-fill'),
     flashcard: document.getElementById('flashcard-element'),
@@ -140,7 +154,8 @@ const App = {
     correctEquationText: document.getElementById('correct-equation-text'),
     correctAnswerReinforce: document.getElementById('correct-answer-reinforce'),
     scoreCorrect: document.getElementById('score-correct-count'),
-    scoreMissed: document.getElementById('score-missed-count')
+    scoreMissed: document.getElementById('score-missed-count'),
+    footer: document.getElementById('drill-footer')
   },
 
   results: {
@@ -171,7 +186,9 @@ const App = {
     timeLimit: 8,
     unlimitedTime: false,
     useScreenKeypad: true,
-    
+    teachMode: false,
+    teachPhase: null, // null | 'learn' | 'quiz'
+
     // Drill data
     questions: [],
     currentIndex: 0,
@@ -202,6 +219,7 @@ const App = {
     this.bindEvents();
     this.loadCachedSettings();
     this.syncSliders();
+    this.updateTeachUI();
     this.initDraggable();
   },
 
@@ -227,21 +245,25 @@ const App = {
     this.inputs.minOperandA.addEventListener('input', () => {
       this.badges.minOperandA.textContent = this.inputs.minOperandA.value;
       this.validateSetup();
+      this.updateTeachUI();
     });
 
     this.inputs.maxOperandA.addEventListener('input', () => {
       this.badges.maxOperandA.textContent = this.inputs.maxOperandA.value;
       this.validateSetup();
+      this.updateTeachUI();
     });
 
     this.inputs.minOperandB.addEventListener('input', () => {
       this.badges.minOperandB.textContent = this.inputs.minOperandB.value;
       this.validateSetup();
+      this.updateTeachUI();
     });
 
     this.inputs.maxOperandB.addEventListener('input', () => {
       this.badges.maxOperandB.textContent = this.inputs.maxOperandB.value;
       this.validateSetup();
+      this.updateTeachUI();
     });
 
     this.inputs.drillSize.addEventListener('input', () => {
@@ -283,13 +305,18 @@ const App = {
     document.getElementById('btn-exit-drill').addEventListener('click', () => {
       if (confirm('Are you sure you want to quit this drill? Your progress will be lost.')) {
         this.stopTimer();
+        this.state.teachPhase = null;
         this.switchScreen('setup');
       }
     });
 
-    // Start Review
+    // Interstitial continue: teach quiz hand-off or review round
     document.getElementById('btn-start-review').addEventListener('click', () => {
-      this.startReviewRound();
+      if (this.state.teachPhase === 'learn') {
+        this.startTeachQuiz();
+      } else {
+        this.startReviewRound();
+      }
     });
 
     // Results Tabs
@@ -323,6 +350,16 @@ const App = {
       this.state.useScreenKeypad = this.inputs.toggleKeypad.checked;
       this.saveSettings();
     });
+
+    // Teach Mode Toggle Listener
+    this.inputs.toggleTeach.addEventListener('change', () => {
+      this.state.teachMode = this.inputs.toggleTeach.checked;
+      this.saveSettings();
+      this.updateTeachUI();
+    });
+
+    // Hide the revealed answer once the learner starts typing (teach mode)
+    this.inputs.answer.addEventListener('input', () => this.maskAnswerReveal());
 
     // Resize handler to reposition the keypad
     window.addEventListener('resize', () => {
@@ -385,8 +422,9 @@ const App = {
     this.inputs.timeLimit.value = config.time;
     this.inputs.unlimited.checked = false;
     this.inputs.timeLimit.disabled = false;
-    
+
     this.syncSliders();
+    this.updateTeachUI();
   },
 
   syncSliders() {
@@ -453,7 +491,10 @@ const App = {
           this.state.useScreenKeypad = ('ontouchstart' in window);
         }
         this.inputs.toggleKeypad.checked = this.state.useScreenKeypad;
-        
+
+        this.state.teachMode = !!settings.teachMode;
+        this.inputs.toggleTeach.checked = this.state.teachMode;
+
         if (settings.unlimitedTime) {
           this.inputs.unlimited.checked = true;
           this.inputs.timeLimit.disabled = true;
@@ -489,7 +530,8 @@ const App = {
       drillSize: parseInt(this.inputs.drillSize.value),
       timeLimit: parseInt(this.inputs.timeLimit.value),
       unlimitedTime: this.inputs.unlimited.checked,
-      useScreenKeypad: this.inputs.toggleKeypad.checked
+      useScreenKeypad: this.inputs.toggleKeypad.checked,
+      teachMode: this.inputs.toggleTeach.checked
     };
     localStorage.setItem('aerocards_settings', JSON.stringify(settings));
   },
@@ -518,6 +560,44 @@ const App = {
       document.getElementById('btn-start').disabled = false;
       return true;
     }
+  },
+
+  updateTeachUI() {
+    const on = this.inputs.toggleTeach.checked;
+    this.teachUI.drillConfigRow.classList.toggle('hide', on);
+    this.teachUI.hint.classList.remove('warn');
+
+    if (!on) {
+      this.teachUI.hint.textContent = 'Learn the cards in order with answers shown, then take an in-order quiz';
+      return;
+    }
+
+    const minA = parseInt(this.inputs.minOperandA.value);
+    const maxA = parseInt(this.inputs.maxOperandA.value);
+    const minB = parseInt(this.inputs.minOperandB.value);
+    const maxB = parseInt(this.inputs.maxOperandB.value);
+    const count = Math.max(0, maxA - minA + 1) * Math.max(0, maxB - minB + 1);
+    const symbol = this.state.operation === 'multiplication' ? '×' : '+';
+
+    let text = `Sequence: ${count} cards (${minA}–${maxA} ${symbol} ${minB}–${maxB}, in order)`;
+    if (count > 100) {
+      text += ' — long sitting! Consider narrowing the ranges.';
+      this.teachUI.hint.classList.add('warn');
+    }
+    this.teachUI.hint.textContent = text;
+  },
+
+  maskAnswerReveal() {
+    if (this.state.teachPhase === 'learn' && this.inputs.answer.value.length > 0) {
+      this.drill.answerReveal.classList.add('masked');
+    }
+  },
+
+  setInterstitial(title, descHTML, tip, btnText) {
+    this.interstitial.title.textContent = title;
+    this.interstitial.desc.innerHTML = descHTML;
+    this.interstitial.tip.textContent = tip;
+    this.interstitial.btnText.textContent = btnText;
   },
 
   showFloatingFeedback(text) {
@@ -564,7 +644,9 @@ const App = {
     this.state.timeLimit = parseInt(this.inputs.timeLimit.value);
     this.state.unlimitedTime = this.inputs.unlimited.checked;
     this.state.useScreenKeypad = this.inputs.toggleKeypad.checked;
-    
+    this.state.teachMode = this.inputs.toggleTeach.checked;
+    this.state.teachPhase = this.state.teachMode ? 'learn' : null;
+
     this.state.currentIndex = 0;
     this.state.correctCount = 0;
     this.state.missedCount = 0;
@@ -594,7 +676,10 @@ const App = {
     this.generateQuestions();
     
     this.state.drillStartTime = Date.now();
-    this.drill.typeBadge.textContent = this.state.operation.charAt(0).toUpperCase() + this.state.operation.slice(1);
+    this.drill.typeBadge.textContent = this.state.teachMode
+      ? 'Teaching'
+      : this.state.operation.charAt(0).toUpperCase() + this.state.operation.slice(1);
+    this.drill.footer.classList.toggle('hide', this.state.teachPhase === 'learn');
     this.drill.totalQ.textContent = this.state.questions.length;
     
     this.switchScreen('drill');
@@ -607,7 +692,28 @@ const App = {
     const minB = this.state.minOperandB;
     const maxB = this.state.maxOperandB;
     const isMultiplication = this.state.operation === 'multiplication';
-    
+
+    // Teach mode: ordered sweep (B outer, A inner), fixed operand on the right, no shuffle
+    if (this.state.teachMode) {
+      const questions = [];
+      for (let b = minB; b <= maxB; b++) {
+        for (let a = minA; a <= maxA; a++) {
+          questions.push({
+            operandA: a,
+            operandB: b,
+            displayA: a,
+            displayB: b,
+            answer: isMultiplication ? (a * b) : (a + b),
+            attempts: 0,
+            timeSpent: 0,
+            status: 'unanswered'
+          });
+        }
+      }
+      this.state.questions = questions;
+      return;
+    }
+
     // Generate pool of valid pairs
     const pool = [];
     for (let a = minA; a <= maxA; a++) {
@@ -684,13 +790,21 @@ const App = {
     this.drill.operandA.textContent = q.displayA;
     this.drill.operandB.textContent = q.displayB;
     this.drill.operatorSymbol.textContent = this.state.operation === 'multiplication' ? '×' : '+';
-    
+
+    // Teach learn phase: reveal the answer alongside the equation
+    if (this.state.teachPhase === 'learn') {
+      this.drill.answerReveal.textContent = q.answer;
+      this.drill.answerReveal.classList.remove('hide', 'masked');
+    } else {
+      this.drill.answerReveal.classList.add('hide');
+    }
+
     // Start Time Tracking
     this.state.questionTimeStart = Date.now();
     
     // Timer handling
     this.stopTimer();
-    if (this.state.unlimitedTime || this.state.reviewMode) {
+    if (this.state.unlimitedTime || this.state.reviewMode || this.state.teachPhase) {
       // Hide timer bar container
       this.drill.timerContainer.classList.add('disabled');
     } else {
@@ -787,6 +901,31 @@ const App = {
       : this.state.questions[this.state.currentIndex];
       
     const isCorrect = userVal === q.answer;
+
+    // --- TEACH MODE: LEARN PHASE EVALUATION ---
+    // Copy-through pass: no stats, no reinforcement panel. Correct advances,
+    // wrong re-reveals the answer and lets the learner try again.
+    if (this.state.teachPhase === 'learn') {
+      if (isCorrect) {
+        const enc = ENCOURAGEMENTS[Math.floor(Math.random() * ENCOURAGEMENTS.length)];
+        this.showFloatingFeedback(`✓ ${enc}`);
+        this.inputs.answer.value = '';
+
+        if (this.state.currentIndex + 1 >= this.state.questions.length) {
+          this.showTeachQuizIntro();
+        } else {
+          this.state.currentIndex++;
+          this.loadQuestion();
+        }
+      } else {
+        this.drill.flashcard.classList.add('card-shake');
+        setTimeout(() => this.drill.flashcard.classList.remove('card-shake'), 400);
+        this.drill.answerReveal.classList.remove('masked');
+        this.inputs.answer.value = '';
+        this.inputs.answer.focus();
+      }
+      return;
+    }
 
     // --- REINFORCEMENT INPUT EVALUATION ---
     if (this.state.reinforcementMode) {
@@ -889,13 +1028,51 @@ const App = {
     
     if (missed.length > 0) {
       // Transition to Review Interstitial
-      document.getElementById('review-missed-count-text').textContent = missed.length;
+      this.setInterstitial(
+        'Review Round',
+        `You missed <strong>${missed.length}</strong> questions during this drill. Let's practice them now to lock them in your memory.`,
+        'Note: If you miss a question during review, we will keep asking until you get it right!',
+        'Start Review Round'
+      );
       this.state.reviewQueue = missed; // Queue holds references to original question objects
       this.switchScreen('reviewIntro');
     } else {
       // Finished with 100% first time
       this.finishSession();
     }
+  },
+
+  // --- Teach Mode Phase Transition ---
+  showTeachQuizIntro() {
+    this.setInterstitial(
+      'Now You Try!',
+      `You've worked through all <strong>${this.state.questions.length}</strong> cards. Time for a quiz — same cards, same order, but the answers are hidden.`,
+      'Miss one? You get the usual correction, and missed cards return in a review round at the end.',
+      'Start Quiz'
+    );
+    this.switchScreen('reviewIntro');
+  },
+
+  startTeachQuiz() {
+    this.state.teachPhase = 'quiz';
+
+    // Wipe learn-phase traces so results reflect the quiz only
+    this.state.questions.forEach(q => {
+      q.attempts = 0;
+      q.timeSpent = 0;
+      q.status = 'unanswered';
+    });
+    this.state.currentIndex = 0;
+    this.state.correctCount = 0;
+    this.state.missedCount = 0;
+    this.drill.scoreCorrect.textContent = '0';
+    this.drill.scoreMissed.textContent = '0';
+    this.state.drillStartTime = Date.now();
+
+    this.drill.typeBadge.textContent = 'Quiz';
+    this.drill.footer.classList.remove('hide');
+    this.switchScreen('drill');
+    this.loadQuestion();
   },
 
   startReviewRound() {
@@ -1021,6 +1198,7 @@ const App = {
     } else {
       if (input.value.length < 6) {
         input.value += key;
+        this.maskAnswerReveal(); // keypad writes don't fire 'input' events
       }
     }
     input.focus();

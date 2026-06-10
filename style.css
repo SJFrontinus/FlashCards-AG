@@ -386,6 +386,9 @@ input[type="range"]::-webkit-slider-thumb:hover {
   color: var(--text-muted);
   margin-top: 6px;
 }
+.field-hint.warn {
+  color: hsl(35, 100%, 60%);
+}
 
 /* Error panels */
 .error-panel {
@@ -621,6 +624,14 @@ input[type="range"]::-webkit-slider-thumb:hover {
 .equation-display .operator-equals {
   color: var(--text-muted);
   font-weight: 400;
+}
+.equation-display .answer-reveal {
+  color: var(--accent);
+  text-shadow: 0 0 30px var(--accent-glow);
+  transition: opacity 0.25s ease;
+}
+.equation-display .answer-reveal.masked {
+  opacity: 0;
 }
 
 /* Answer Input Field styling */
@@ -1180,6 +1191,10 @@ input[type="range"]::-webkit-slider-thumb:hover {
   }
   .equation-display {
     font-size: 3.5rem;
+  }
+  /* Teach mode shows the answer too — shrink to keep the longer equation on one line */
+  .equation-display:has(.answer-reveal:not(.hide)) {
+    font-size: 2.6rem;
   }
   #input-answer {
     font-size: 1.8rem;
